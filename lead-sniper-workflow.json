@@ -1,0 +1,233 @@
+{
+  "name": "My Lead Sniper - Yellow.aiworkflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            },
+            {},
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "54ad636b-1f4d-4615-a6e5-7615e8d943d8",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/tiangolo/fastapi/stargazers?per_page=5",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        176,
+        64
+      ],
+      "id": "18885cab-3221-4636-a3a2-e806c1202b81",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/users/{{ $json.login }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        384,
+        64
+      ],
+      "id": "62df5d74-7e12-4a58-9bea-d6329ab80ff5",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "34d674c8-9630-4f4e-a935-ac77bcc189f3",
+              "leftValue": "={{ $json.followers }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "10b595c6-d758-4be1-9905-87327f9f38b4",
+              "leftValue": "={{ $json.public_repos }}",
+              "rightValue": 50,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        64
+      ],
+      "id": "d0d7115a-7e6a-48e5-92f3-38e1d6736af8",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        659,
+        64
+      ],
+      "id": "da705977-47fd-42e3-83a8-b14536ae290a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate AI Sales Pitch based on bio and company\nconst items = $input.all();\n\nreturn items.map(item => {\n  const user = item.json;\n  \n  const name = user.name || user.login || 'there';\n  const bio = user.bio || 'No bio available';\n  const company = user.company || 'their company';\n  const followers = user.followers || 0;\n  const repos = user.public_repos || 0;\n  const location = user.location || 'Unknown location';\n\n  // AI Sales Pitch Logic\n  let pitch = '';\n\n  if (bio.toLowerCase().includes('ai') || bio.toLowerCase().includes('machine learning')) {\n    pitch = `${name} is an AI/ML enthusiast at ${company} with ${followers} followers — Yellow.ai's Agentic AI platform would perfectly complement their work!`;\n  } else if (bio.toLowerCase().includes('open source')) {\n    pitch = `${name} is an Open Source advocate at ${company} with ${repos} public repos — they'd love Yellow.ai's developer-friendly automation platform!`;\n  } else if (followers > 500) {\n    pitch = `${name} is a highly influential developer at ${company} with ${followers} followers — a perfect champion for Yellow.ai's enterprise AI solutions!`;\n  } else {\n    pitch = `${name} at ${company} has ${followers} followers and ${repos} public repos — they show strong technical engagement and would benefit from Yellow.ai's AI automation platform!`;\n  }\n\n  return {\n    json: {\n      name: name,\n      login: user.login,\n      company: company,\n      location: location,\n      followers: followers,\n      public_repos: repos,\n      bio: bio,\n      profile_url: `https://github.com/${user.login}`,\n      sales_pitch: pitch\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        659,
+        64
+      ],
+      "id": "0a1b2f1b-9170-4c47-b51d-27057d7e367a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1486981621805617222/MpH4N7oAIbvGEuxiCvnZNJ0gCTE6kOhLrA3dZ6a9mBgzN964PMcgGDrecrgZaFVIF1jv",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "=🚨 NEW HIGH-VALUE LEAD!\n\n👤 Name: {{ $json.name }}\n🐙 GitHub: {{ $json.profile_url }}\n🏢 Company: {{ $json.company }}\n👥 Followers: {{ $json.followers }}\n📦 Repos: {{ $json.public_repos }}\n📝 Bio: {{ $json.bio }}\n\n🤖 AI Pitch: {{ $json.sales_pitch }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        659,
+        64
+      ],
+      "id": "976778f1-afd2-4cb1-ab12-7fe566af22ea",
+      "name": "HTTP Request2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ae0c0bd7-446d-4d02-ae93-410bc1b694f4",
+  "meta": {
+    "instanceId": "f8ed0e3d1edf31ba39f7bbe33e86af5e6e6c46c92f447bc7addb0ab373077cee"
+  },
+  "id": "0teMkj1hmJj9FkWG",
+  "tags": []
+}
